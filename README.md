@@ -46,8 +46,7 @@ fitness-ai/
 │   ├── Home.py                     # Streamlit main page
 │   ├── pages/
 │   │   ├── 1_Onboarding.py
-│   │   ├── 2_YourPlan.py
-│   │   └── 3_Dashboard.py
+│   │  
 │   ├── utils/
 │   │   └── api.py                  # Backend API calls
 │   └── README.md
