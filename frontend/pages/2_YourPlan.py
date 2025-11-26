@@ -21,6 +21,7 @@ st.markdown("""
         padding: 1.5rem;
         margin: 1rem 0;
         transition: all 0.3s;
+        color: #333;
     }
     .day-card:hover {
         border-color: #667eea;
@@ -31,6 +32,9 @@ st.markdown("""
         border-color: #667eea;
         border-width: 3px;
         box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    .day-card p, .day-card div {
+        color: #333 !important;
     }
     .day-header {
         font-size: 1.5rem;
@@ -53,6 +57,14 @@ st.markdown("""
         border-radius: 10px;
         margin: 0.5rem 0;
         border-left: 4px solid #667eea;
+        color: #333;
+    }
+    .exercise-item strong {
+        color: #667eea;
+        font-size: 1.05rem;
+    }
+    .exercise-item small {
+        color: #666;
     }
     .meal-item {
         background: #f8f9fa;
@@ -60,6 +72,14 @@ st.markdown("""
         border-radius: 10px;
         margin: 0.5rem 0;
         border-left: 4px solid #764ba2;
+        color: #333;
+    }
+    .meal-item strong {
+        color: #764ba2;
+        font-size: 1.05rem;
+    }
+    .meal-item p {
+        color: #555;
     }
     .tab-button {
         padding: 1rem 2rem;

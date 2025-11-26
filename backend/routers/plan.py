@@ -6,6 +6,35 @@ import re
 
 router = APIRouter()
 
+def extract_json_from_text(text):
+    """Extract JSON from text that may contain markdown code blocks"""
+    if not text:
+        return None
+    
+    # Method 1: Try to find JSON in markdown code blocks
+    json_pattern = r'```json\s*(.*?)\s*```'
+    matches = re.findall(json_pattern, text, re.DOTALL)
+    
+    if matches:
+        for match in matches:
+            try:
+                return json.loads(match)
+            except json.JSONDecodeError:
+                continue
+    
+    # Method 2: Try to find complete JSON object
+    try:
+        # Find content between first { and last }
+        start = text.find('{')
+        end = text.rfind('}')
+        if start != -1 and end != -1 and end > start:
+            json_str = text[start:end+1]
+            return json.loads(json_str)
+    except json.JSONDecodeError:
+        pass
+    
+    return None
+
 @router.post("/generate-plan")
 def generate_plan(profile: UserProfile):
     """
@@ -17,66 +46,63 @@ def generate_plan(profile: UserProfile):
         # Get result from CrewAI
         result = generate_weekly_plan(profile)
         
-        # CrewAI returns a CrewOutput object, convert to string
-        raw_result = str(result)
+        print("\n" + "="*80)
+        print("PARSING CREWAI OUTPUTS")
+        print("="*80)
         
-        # Extract workout and diet plans from the raw output
-        workout_plan = None
-        diet_plan = None
+        # Extract workout plan
+        workout_plan = []
+        workout_output = result.get('workout_output', '')
+        if workout_output:
+            print(f"📋 Workout output length: {len(workout_output)}")
+            workout_data = extract_json_from_text(workout_output)
+            if workout_data and 'workout_plan' in workout_data:
+                workout_plan = workout_data['workout_plan']
+                print(f"✅ Successfully extracted {len(workout_plan)} workout days")
+            else:
+                print("⚠️ Could not parse workout JSON")
+                # Debug: show first 500 chars
+                print("First 500 chars of workout output:")
+                print(workout_output[:500])
+        else:
+            print("❌ No workout output captured")
         
-        # Try to parse the raw result which contains JSON blocks
-        # The output contains two JSON blocks - one from workout agent, one from diet agent
+        # Extract diet plan
+        diet_plan = []
+        diet_output = result.get('diet_output', '')
+        if diet_output:
+            print(f"📋 Diet output length: {len(diet_output)}")
+            diet_data = extract_json_from_text(diet_output)
+            if diet_data and 'diet_plan' in diet_data:
+                diet_plan = diet_data['diet_plan']
+                print(f"✅ Successfully extracted {len(diet_plan)} diet days")
+            else:
+                print("⚠️ Could not parse diet JSON")
         
-        # Find all JSON blocks in the output
-        json_pattern = r'```json\s*(.*?)\s*```'
-        json_matches = re.findall(json_pattern, raw_result, re.DOTALL)
+        # Fallback: try final output
+        if not diet_plan:
+            final_output = result.get('final_output', '')
+            if final_output:
+                print("Trying to extract diet from final output...")
+                diet_data = extract_json_from_text(final_output)
+                if diet_data and 'diet_plan' in diet_data:
+                    diet_plan = diet_data['diet_plan']
+                    print(f"✅ Extracted {len(diet_plan)} diet days from final output")
         
-        if len(json_matches) >= 1:
-            # The last JSON block should be the diet plan (as it runs last)
-            try:
-                diet_data = json.loads(json_matches[-1])
-                diet_plan = diet_data.get('diet_plan', [])
-            except json.JSONDecodeError as e:
-                print(f"Error parsing diet plan: {e}")
-            
-            # If there are 2 JSON blocks, first one is workout
-            if len(json_matches) >= 2:
-                try:
-                    workout_data = json.loads(json_matches[0])
-                    workout_plan = workout_data.get('workout_plan', [])
-                except json.JSONDecodeError as e:
-                    print(f"Error parsing workout plan: {e}")
+        print("="*80)
+        print(f"FINAL: Workout days={len(workout_plan)}, Diet days={len(diet_plan)}")
+        print("="*80 + "\n")
         
-        # Fallback: try to extract from the raw text directly
-        if not workout_plan or not diet_plan:
-            # Look for workout_plan and diet_plan in the raw output
-            workout_match = re.search(r'"workout_plan"\s*:\s*\[(.*?)\]', raw_result, re.DOTALL)
-            diet_match = re.search(r'"diet_plan"\s*:\s*\[(.*?)\]', raw_result, re.DOTALL)
-            
-            if workout_match and not workout_plan:
-                try:
-                    workout_json = f'{{"workout_plan":[{workout_match.group(1)}]}}'
-                    workout_data = json.loads(workout_json)
-                    workout_plan = workout_data.get('workout_plan', [])
-                except:
-                    pass
-            
-            if diet_match and not diet_plan:
-                try:
-                    diet_json = f'{{"diet_plan":[{diet_match.group(1)}]}}'
-                    diet_data = json.loads(diet_json)
-                    diet_plan = diet_data.get('diet_plan', [])
-                except:
-                    pass
-        
-        # Return properly structured response
+        # Return structured response
         return {
             "success": True,
-            "workout_plan": workout_plan if workout_plan else [],
-            "diet_plan": diet_plan if diet_plan else [],
-            "raw": raw_result  # Keep raw for debugging
+            "workout_plan": workout_plan,
+            "diet_plan": diet_plan,
+            "raw": result.get('final_output', '')
         }
         
     except Exception as e:
-        print(f"Error in generate_plan: {str(e)}")
+        print(f"\n❌ ERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
