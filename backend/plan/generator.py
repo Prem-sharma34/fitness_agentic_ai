@@ -1,4 +1,4 @@
-from crewai import Task, Crew
+from crewai import Task, Crew , Process
 from plan.agents import workout_agent, diet_agent
 
 def _workout_task_for(profile):
@@ -63,6 +63,7 @@ def generate_weekly_plan(profile):
     crew = Crew(
         agents=[workout_agent, diet_agent],
         tasks=[workout_task, diet_task],
+        process=Process.sequential,
         verbose=True
     )
 
