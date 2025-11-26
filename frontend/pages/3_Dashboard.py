@@ -4,7 +4,6 @@ import json
 
 st.set_page_config(page_title="Your Dashboard", page_icon="📊", layout="wide")
 
-# Custom CSS
 st.markdown("""
     <style>
     .dashboard-header {
@@ -49,21 +48,18 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state for tracking
 if 'progress_data' not in st.session_state:
     st.session_state.progress_data = {}
 
 if 'start_date' not in st.session_state:
     st.session_state.start_date = datetime.now().strftime("%Y-%m-%d")
 
-# Check if plan exists
 if 'plan_data' not in st.session_state or st.session_state.plan_data is None:
     st.warning("⚠️ No plan found. Please generate your plan first.")
     if st.button("← Go to Onboarding"):
         st.switch_page("pages/1_Onboarding.py")
     st.stop()
 
-# Parse plan data
 try:
     plan_data = st.session_state.plan_data
     workout_plan = plan_data.get('workout_plan', [])
@@ -73,13 +69,11 @@ except Exception as e:
     st.error(f"Error loading plan data: {e}")
     st.stop()
 
-# Calculate current day
 start_date = datetime.strptime(st.session_state.start_date, "%Y-%m-%d")
 today = datetime.now()
 days_elapsed = (today - start_date).days
-current_day = min(days_elapsed, 6)  # 0-6 for days 1-7
+current_day = min(days_elapsed, 6)  
 
-# Header
 st.markdown(f"""
     <div class="dashboard-header">
         <h1>📊 Your Fitness Dashboard</h1>
@@ -87,10 +81,8 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# Statistics
 col1, col2, col3, col4 = st.columns(4)
 
-# Calculate stats
 today_key = datetime.now().strftime("%Y-%m-%d")
 workout_done = st.session_state.progress_data.get(today_key, {}).get('workout', False)
 diet_done = st.session_state.progress_data.get(today_key, {}).get('diet', False)
@@ -135,12 +127,10 @@ with col4:
 
 st.markdown("---")
 
-# Today's Plan
 st.markdown("## 📅 Today's Plan")
 
 col1, col2 = st.columns(2)
 
-# Workout Section
 with col1:
     st.markdown("### 🏋️ Workout")
     
@@ -163,7 +153,6 @@ with col1:
         st.info("Rest day or no workout available")
         workout_done = False
 
-# Diet Section
 with col2:
     st.markdown("### 🍽️ Meals")
     
@@ -186,7 +175,6 @@ with col2:
         st.info("No meal plan available")
         diet_done = False
 
-# Save progress
 if st.button("💾 Save Today's Progress", use_container_width=True):
     st.session_state.progress_data[today_key] = {
         'workout': workout_done,
@@ -198,7 +186,6 @@ if st.button("💾 Save Today's Progress", use_container_width=True):
 
 st.markdown("---")
 
-# Motivational Message
 if workout_done and diet_done:
     st.success("🎉 Amazing! You crushed both workout and diet today! Keep it up!")
 elif workout_done or diet_done:
@@ -206,7 +193,6 @@ elif workout_done or diet_done:
 else:
     st.warning("💪 Don't give up! Every journey starts with a single step. You've got this!")
 
-# Weekly Progress
 st.markdown("## 📈 Weekly Progress")
 
 progress_data = []
@@ -221,7 +207,6 @@ for i in range(7):
 
 st.table(progress_data)
 
-# Navigation
 st.markdown("---")
 col1, col2 = st.columns(2)
 
@@ -231,7 +216,6 @@ with col1:
 
 with col2:
     if st.button("🔄 Start New Plan", use_container_width=True):
-        # Reset session state
         st.session_state.plan_data = None
         st.session_state.progress_data = {}
         st.session_state.current_step = 1

@@ -1,7 +1,7 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="FitnessPro AI",
+    page_title="LifeTune",
     page_icon="💪",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -53,7 +53,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Hero Section
-st.markdown('<h1 class="hero-text">💪 FitnessPro AI</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="hero-text">💪 LifeTune</h1>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Your Personal AI Fitness & Nutrition Coach</p>', unsafe_allow_html=True)
 
 st.markdown("---")

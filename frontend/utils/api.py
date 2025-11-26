@@ -2,7 +2,6 @@ import requests
 import json
 from typing import Dict, Any, Optional
 
-# Backend configuration
 BACKEND_URL = "http://localhost:8000"
 
 class FitnessAPI:
@@ -61,21 +60,17 @@ class FitnessAPI:
         }
         
         try:
-            # Extract raw output
             raw = response.get('raw', '')
             
-            # Try to parse JSON from raw output
             if '```json' in raw:
                 json_str = raw.split('```json')[1].split('```')[0].strip()
                 data = json.loads(json_str)
             else:
                 data = json.loads(raw)
             
-            # Extract diet plan
             if 'diet_plan' in data:
                 parsed['diet_plan'] = data['diet_plan']
             
-            # Extract workout plan (if available in response)
             if 'workout_plan' in response:
                 parsed['workout_plan'] = response['workout_plan']
             
@@ -95,7 +90,6 @@ class FitnessAPI:
         except:
             return False
 
-# Helper functions for data validation
 def validate_profile(profile: Dict) -> tuple[bool, str]:
     """
     Validate user profile data
@@ -109,7 +103,6 @@ def validate_profile(profile: Dict) -> tuple[bool, str]:
         if field not in profile:
             return False, f"Missing required field: {field}"
     
-    # Validate ranges
     if not (15 <= profile['age'] <= 80):
         return False, "Age must be between 15 and 80"
     

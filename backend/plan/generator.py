@@ -84,7 +84,6 @@ def generate_weekly_plan(profile):
     print("🏋️ STARTING WORKOUT AGENT")
     print("="*80)
     
-    # Create and run workout crew
     workout_task = _workout_task_for(profile)
     workout_crew = Crew(
         agents=[workout_agent],
@@ -103,7 +102,6 @@ def generate_weekly_plan(profile):
     print("🍽️ STARTING DIET AGENT")
     print("="*80)
     
-    # Create and run diet crew
     diet_task = _diet_task_for(profile)
     diet_crew = Crew(
         agents=[diet_agent],

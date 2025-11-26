@@ -3,13 +3,11 @@ import requests
 
 st.set_page_config(page_title="Setup Your Profile", page_icon="📝", layout="wide")
 
-# Initialize session state
 if 'profile_data' not in st.session_state:
     st.session_state.profile_data = {}
 if 'current_step' not in st.session_state:
     st.session_state.current_step = 1
 
-# Custom CSS
 st.markdown("""
     <style>
     .step-indicator {
@@ -85,7 +83,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Progress Indicator
 def show_progress(current):
     steps = ["🎯", "📊", "⏰", "🍽️", "✨"]
     progress_html = '<div class="step-indicator">'
@@ -154,7 +151,6 @@ elif st.session_state.current_step == 2:
     with col2:
         weight = st.number_input("⚖️ Weight (kg)", min_value=40, max_value=150, value=65, step=1, help="Your current weight in kilograms")
         
-        # Calculate BMI
         if height > 0:
             bmi = weight / ((height/100) ** 2)
             
@@ -185,9 +181,7 @@ elif st.session_state.current_step == 2:
             st.session_state.current_step = 3
             st.rerun()
 
-# ============================================
-# STEP 3: Workout Preferences
-# ============================================
+
 elif st.session_state.current_step == 3:
     st.markdown('<h1 class="section-title">⏰ Your Workout Preferences</h1>', unsafe_allow_html=True)
     st.markdown('<p class="section-subtitle">When and how long can you workout?</p>', unsafe_allow_html=True)
@@ -196,7 +190,6 @@ elif st.session_state.current_step == 3:
     
     col1, col2, col3, col4 = st.columns(4)
     
-    # Store selected time in session state if not exists
     if 'temp_time' not in st.session_state:
         st.session_state.temp_time = 30
     
@@ -292,7 +285,6 @@ elif st.session_state.current_step == 5:
     st.markdown('<h1 class="section-title">✨ Ready to Generate Your Plan!</h1>', unsafe_allow_html=True)
     st.markdown('<p class="section-subtitle">Review your profile and let our AI create your personalized plan</p>', unsafe_allow_html=True)
     
-    # Profile Summary
     st.markdown("### 📋 Your Profile Summary")
     
     col1, col2 = st.columns(2)
@@ -328,10 +320,8 @@ elif st.session_state.current_step == 5:
     
     with col2:
         if st.button("🚀 Generate My Plan", use_container_width=True, type="primary"):
-            # Show loading state
             with st.spinner("🤖 Our AI agents are crafting your personalized plan... This may take 60-90 seconds..."):
                 try:
-                    # Call backend API
                     response = requests.post(
                         "http://localhost:8000/generate-plan",
                         json=st.session_state.profile_data,
@@ -341,17 +331,14 @@ elif st.session_state.current_step == 5:
                     if response.status_code == 200:
                         result = response.json()
                         
-                        # Store in session state
                         st.session_state.plan_data = result
                         
                         st.success("✅ Your personalized plan is ready!")
                         st.balloons()
                         
-                        # Small delay for effect
                         import time
                         time.sleep(1)
                         
-                        # Redirect to plan page
                         st.switch_page("pages/2_YourPlan.py")
                     else:
                         st.error(f"❌ Server Error: {response.status_code}")

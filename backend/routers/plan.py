@@ -11,7 +11,6 @@ def extract_json_from_text(text):
     if not text:
         return None
     
-    # Method 1: Try to find JSON in markdown code blocks
     json_pattern = r'```json\s*(.*?)\s*```'
     matches = re.findall(json_pattern, text, re.DOTALL)
     
@@ -22,9 +21,7 @@ def extract_json_from_text(text):
             except json.JSONDecodeError:
                 continue
     
-    # Method 2: Try to find complete JSON object
     try:
-        # Find content between first { and last }
         start = text.find('{')
         end = text.rfind('}')
         if start != -1 and end != -1 and end > start:
@@ -43,14 +40,12 @@ def generate_plan(profile: UserProfile):
     Returns: Properly structured JSON output from CrewAI (workout + diet)
     """
     try:
-        # Get result from CrewAI
         result = generate_weekly_plan(profile)
         
         print("\n" + "="*80)
         print("PARSING CREWAI OUTPUTS")
         print("="*80)
         
-        # Extract workout plan
         workout_plan = []
         workout_output = result.get('workout_output', '')
         if workout_output:
@@ -60,14 +55,12 @@ def generate_plan(profile: UserProfile):
                 workout_plan = workout_data['workout_plan']
                 print(f"✅ Successfully extracted {len(workout_plan)} workout days")
             else:
-                print("⚠️ Could not parse workout JSON")
-                # Debug: show first 500 chars
+                print("Could not parse workout JSON")
                 print("First 500 chars of workout output:")
                 print(workout_output[:500])
         else:
-            print("❌ No workout output captured")
+            print("No workout output captured")
         
-        # Extract diet plan
         diet_plan = []
         diet_output = result.get('diet_output', '')
         if diet_output:
@@ -75,11 +68,10 @@ def generate_plan(profile: UserProfile):
             diet_data = extract_json_from_text(diet_output)
             if diet_data and 'diet_plan' in diet_data:
                 diet_plan = diet_data['diet_plan']
-                print(f"✅ Successfully extracted {len(diet_plan)} diet days")
+                print(f"Successfully extracted {len(diet_plan)} diet days")
             else:
-                print("⚠️ Could not parse diet JSON")
+                print("Could not parse diet JSON")
         
-        # Fallback: try final output
         if not diet_plan:
             final_output = result.get('final_output', '')
             if final_output:
@@ -87,13 +79,12 @@ def generate_plan(profile: UserProfile):
                 diet_data = extract_json_from_text(final_output)
                 if diet_data and 'diet_plan' in diet_data:
                     diet_plan = diet_data['diet_plan']
-                    print(f"✅ Extracted {len(diet_plan)} diet days from final output")
+                    print(f" Extracted {len(diet_plan)} diet days from final output")
         
         print("="*80)
         print(f"FINAL: Workout days={len(workout_plan)}, Diet days={len(diet_plan)}")
         print("="*80 + "\n")
         
-        # Return structured response
         return {
             "success": True,
             "workout_plan": workout_plan,

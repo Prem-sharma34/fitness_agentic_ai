@@ -3,7 +3,6 @@ import json
 
 st.set_page_config(page_title="Your Fitness Plan", page_icon="📅", layout="wide")
 
-# Custom CSS
 st.markdown("""
     <style>
     .plan-header {
@@ -106,23 +105,18 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Check if plan data exists
 if 'plan_data' not in st.session_state or st.session_state.plan_data is None:
     st.warning("⚠️ No plan found. Please complete the onboarding first.")
     if st.button("← Go to Onboarding"):
         st.switch_page("pages/1_Onboarding.py")
     st.stop()
 
-# Extract plan data
 plan_data = st.session_state.plan_data
 
-# Parse workout and diet plans
 try:
-    # Backend now returns properly structured data
     workout_plan = plan_data.get('workout_plan', [])
     diet_plan_list = plan_data.get('diet_plan', [])
     
-    # Validate data
     if not workout_plan:
         st.warning("⚠️ Workout plan not available")
     if not diet_plan_list:
@@ -134,7 +128,6 @@ except Exception as e:
         st.write("Raw data:", plan_data)
     st.stop()
 
-# Header
 st.markdown("""
     <div class="plan-header">
         <h1>🎯 Your Personalized 7-Day Fitness Plan</h1>
@@ -142,14 +135,11 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Tab selection
 tab1, tab2 = st.tabs(["🏋️ Workout Plan", "🍽️ Meal Plan"])
 
-# WORKOUT PLAN TAB
 with tab1:
     st.markdown("## 💪 Your Weekly Workout Schedule")
     
-    # Day selector
     day_cols = st.columns(7)
     selected_day = st.session_state.get('selected_workout_day', 0)
     
@@ -162,7 +152,6 @@ with tab1:
     
     st.markdown("---")
     
-    # Display selected day workout
     if workout_plan and isinstance(workout_plan, list) and len(workout_plan) > selected_day:
         day_data = workout_plan[selected_day]
         
@@ -197,11 +186,9 @@ with tab1:
     else:
         st.warning("No workout data available for this day.")
 
-# MEAL PLAN TAB
 with tab2:
     st.markdown("## 🍽️ Your Weekly Meal Plan")
     
-    # Day selector
     day_cols = st.columns(7)
     selected_meal_day = st.session_state.get('selected_meal_day', 0)
     
@@ -214,7 +201,6 @@ with tab2:
     
     st.markdown("---")
     
-    # Display selected day meals
     if diet_plan_list and len(diet_plan_list) > selected_meal_day:
         day_data = diet_plan_list[selected_meal_day]
         
@@ -243,7 +229,6 @@ with tab2:
     else:
         st.warning("No meal data available for this day.")
 
-# Navigation
 st.markdown("---")
 col1, col2, col3 = st.columns([1, 1, 1])
 
@@ -255,7 +240,6 @@ with col3:
     if st.button("Go to Dashboard →", use_container_width=True):
         st.switch_page("pages/3_Dashboard.py")
 
-# Tips Section
 st.markdown("---")
 st.markdown("### 💡 Quick Tips for Success")
 
