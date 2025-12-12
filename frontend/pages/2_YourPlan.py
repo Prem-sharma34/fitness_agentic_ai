@@ -1,264 +1,286 @@
 import streamlit as st
-import json
 
-st.set_page_config(page_title="Your Fitness Plan", page_icon="📅", layout="wide")
+# ========================================
+# PAGE CONFIG
+# ========================================
+st.set_page_config(
+    page_title="Your AI Plan - LifeTune",
+    page_icon="AI",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
+# ========================================
+# PREMIUM CSS — Matches Onboarding
+# ========================================
 st.markdown("""
-    <style>
+<style>
+    .main {
+        padding: 0 !important;
+        background: linear-gradient(135deg, #0a0e27 0%, #1a1d35 100%);
+    }
+    .block-container {
+        padding: 2rem 4rem !important;
+        max-width: 1400px !important;
+    }
+    #MainMenu, footer, header {visibility: hidden;}
+
+    /* Header */
     .plan-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        border-radius: 15px;
-        color: white;
-        margin-bottom: 2rem;
-        text-align: center;
+        text-align: center; margin: 2rem 0 3rem 0;
     }
-    .day-card {
-        background: white;
-        border: 2px solid #e0e0e0;
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        transition: all 0.3s;
-        color: #333;
+    .plan-title {
+        font-size: 3.8rem; font-weight: 900;
+        background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px;
     }
-    .day-card:hover {
-        border-color: #667eea;
-        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
-        transform: translateY(-3px);
+    .plan-subtitle {
+        font-size: 1.4rem; color: #9ca3c0; font-weight: 300;
     }
-    .day-card.active {
-        border-color: #667eea;
-        border-width: 3px;
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        justify-content: center; gap: 2rem; margin-bottom: 3rem;
     }
-    .day-card p, .day-card div {
-        color: #333 !important;
+    .stTabs [data-baseweb="tab"] {
+        background: #1a1d35; color: #9ca3c0; border: 2px solid rgba(255,255,255,0.1);
+        border-radius: 20px; padding: 1rem 3rem; font-size: 1.1rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s;
     }
-    .day-header {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #667eea;
-        margin-bottom: 0.5rem;
+    .stTabs [data-baseweb="tab"]:hover {
+        border-color: #00ff87; color: white;
     }
-    .focus-badge {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 0.3rem 1rem;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        display: inline-block;
-        margin: 0.5rem 0;
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+        color: #0a0e27; border-color: transparent;
+        box-shadow: 0 0 30px rgba(0,255,135,0.4);
+    }
+
+    /* Day Selector */
+    .day-selector {
+        display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin: 2rem 0;
+    }
+    .day-btn {
+        background: #1a1d35; color: white; border: 2px solid rgba(255,255,255,0.1);
+        border-radius: 15px; padding: 1rem 1.5rem; font-weight: 700; font-size: 1rem;
+        transition: all 0.3s; min-width: 80px;
+    }
+    .day-btn:hover {
+        border-color: #00ff87; transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,255,135,0.2);
+    }
+    .day-btn.active {
+        background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+        color: #0a0e27; border-color: transparent;
+        box-shadow: 0 0 25px rgba(0,255,135,0.5);
+    }
+
+    /* Workout Section */
+    .workout-container {
+        background: linear-gradient(135deg, #1a1d35 0%, #252945 100%);
+        border-radius: 25px; padding: 3rem; border: 2px solid rgba(0,255,135,0.3);
+        margin: 2rem 0; box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    }
+    .workout-focus {
+        display: inline-block; padding: 0.6rem 1.8rem; background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+        color: #0a0e27; border-radius: 30px; font-weight: 700; font-size: 1rem;
+        text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem;
+    }
+    .workout-time {
+        color: #00ff87; font-size: 1.1rem; font-weight: 600; margin-bottom: 2rem;
     }
     .exercise-item {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 10px;
-        margin: 0.5rem 0;
-        border-left: 4px solid #667eea;
-        color: #333;
+        background: rgba(0,255,135,0.05); border-left: 5px solid #00ff87;
+        padding: 1.5rem; border-radius: 12px; margin: 1rem 0;
+        transition: all 0.3s;
     }
-    .exercise-item strong {
-        color: #667eea;
-        font-size: 1.05rem;
+    .exercise-item:hover {
+        background: rgba(0,255,135,0.1); transform: translateX(10px);
     }
-    .exercise-item small {
-        color: #666;
+    .exercise-name {
+        font-size: 1.3rem; font-weight: 700; color: white; margin-bottom: 0.5rem;
+    }
+    .exercise-detail {
+        color: #00ff87; font-size: 1rem; font-weight: 600;
+    }
+
+    /* Meal Section */
+    .meal-container {
+        background: linear-gradient(135deg, #1a1d35 0%, #252945 100%);
+        border-radius: 25px; padding: 3rem; border: 2px solid rgba(96,239,255,0.3);
+        margin: 2rem 0; box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    }
+    .meal-calories {
+        display: inline-block; padding: 0.6rem 1.8rem; background: linear-gradient(135deg, #60efff 0%, #00ff87 100%);
+        color: #0a0e27; border-radius: 30px; font-weight: 700; font-size: 1rem;
+        text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem;
     }
     .meal-item {
-        background: #f8f9fa;
-        padding: 1rem;
-        border-radius: 10px;
-        margin: 0.5rem 0;
-        border-left: 4px solid #764ba2;
-        color: #333;
-    }
-    .meal-item strong {
-        color: #764ba2;
-        font-size: 1.05rem;
-    }
-    .meal-item p {
-        color: #555;
-    }
-    .tab-button {
-        padding: 1rem 2rem;
-        border-radius: 10px;
-        border: 2px solid #e0e0e0;
-        background: white;
-        cursor: pointer;
+        background: rgba(96,239,255,0.05); border-left: 5px solid #60efff;
+        padding: 1.5rem; border-radius: 12px; margin: 1rem 0;
         transition: all 0.3s;
-        margin: 0.5rem;
     }
-    .tab-button.active {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-color: #667eea;
+    .meal-item:hover {
+        background: rgba(96,239,255,0.1); transform: translateX(10px);
     }
-    .calorie-badge {
-        background: #ffd700;
-        color: #333;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-weight: bold;
-        display: inline-block;
+    .meal-title {
+        font-size: 1.3rem; font-weight: 700; color: white; margin-bottom: 0.5rem;
+        display: flex; align-items: center; gap: 0.5rem;
     }
-    </style>
+    .meal-desc {
+        color: #b0b8d4; font-size: 1.1rem; line-height: 1.6; font-style: italic;
+    }
+
+    /* Navigation Buttons */
+    .nav-buttons {
+        display: flex; justify-content: space-between; margin: 3rem 0;
+    }
+    .stButton>button {
+        background: linear-gradient(135deg, #00ff87 0%, #60efff 100%) !important;
+        color: #0a0e27 !important; border: none !important; padding: 1.2rem 3rem !important;
+        font-size: 1.1rem !important; font-weight: 700 !important; border-radius: 50px !important;
+        text-transform: uppercase !important; letter-spacing: 2px !important;
+        box-shadow: 0 10px 30px rgba(0,255,135,0.3) !important; transition: all 0.3s !important;
+        width: auto !important; min-width: 200px;
+    }
+    .stButton>button:hover {
+        transform: translateY(-3px) !important; box-shadow: 0 15px 40px rgba(0,255,135,0.5) !important;
+    }
+    .back-btn button {
+        background: transparent !important; border: 2px solid rgba(255,255,255,0.2) !important;
+        color: white !important; box-shadow: none !important;
+    }
+    .back-btn button:hover {
+        border-color: #00ff87 !important; background: rgba(0,255,135,0.1) !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .block-container {padding: 1rem !important;}
+        .plan-title {font-size: 2.5rem;}
+        .day-selector {gap: 0.5rem;}
+        .day-btn {padding: 0.8rem 1rem; font-size: 0.9rem;}
+    }
+</style>
 """, unsafe_allow_html=True)
 
-if 'plan_data' not in st.session_state or st.session_state.plan_data is None:
-    st.warning("⚠️ No plan found. Please complete the onboarding first.")
-    if st.button("← Go to Onboarding"):
+# ========================================
+# DATA VALIDATION
+# ========================================
+if 'plan_data' not in st.session_state or not st.session_state.plan_data:
+    st.warning("No plan found. Please complete onboarding.")
+    if st.button("Go to Onboarding"):
         st.switch_page("pages/1_Onboarding.py")
     st.stop()
 
-plan_data = st.session_state.plan_data
+plan = st.session_state.plan_data
+workout_plan = plan.get('workout_plan', [])
+diet_plan = plan.get('diet_plan', [])
 
-try:
-    workout_plan = plan_data.get('workout_plan', [])
-    diet_plan_list = plan_data.get('diet_plan', [])
-    
-    if not workout_plan:
-        st.warning("⚠️ Workout plan not available")
-    if not diet_plan_list:
-        st.warning("⚠️ Diet plan not available")
-    
-except Exception as e:
-    st.error(f"Error loading plan data: {e}")
-    if st.checkbox("Show debug info"):
-        st.write("Raw data:", plan_data)
-    st.stop()
-
-st.markdown("""
+# ========================================
+# HEADER
+# ========================================
+st.markdown('''
     <div class="plan-header">
-        <h1>🎯 Your Personalized 7-Day Fitness Plan</h1>
-        <p>Follow this plan consistently for the best results!</p>
+        <h1 class="plan-title">Your 7-Day AI Plan</h1>
+        <p class="plan-subtitle">Crafted by intelligent agents for your transformation</p>
     </div>
-""", unsafe_allow_html=True)
+''', unsafe_allow_html=True)
 
-tab1, tab2 = st.tabs(["🏋️ Workout Plan", "🍽️ Meal Plan"])
+# ========================================
+# TABS
+# ========================================
+tab1, tab2 = st.tabs(["WORKOUT", "MEALS"])
 
+# ========================================
+# WORKOUT TAB
+# ========================================
 with tab1:
-    st.markdown("## 💪 Your Weekly Workout Schedule")
-    
-    day_cols = st.columns(7)
-    selected_day = st.session_state.get('selected_workout_day', 0)
-    
-    for idx, col in enumerate(day_cols):
-        with col:
-            if st.button(f"Day {idx + 1}", key=f"workout_day_{idx}", use_container_width=True):
-                st.session_state.selected_workout_day = idx
-                selected_day = idx
-                st.rerun()
-    
-    st.markdown("---")
-    
-    if workout_plan and isinstance(workout_plan, list) and len(workout_plan) > selected_day:
-        day_data = workout_plan[selected_day]
-        
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            st.markdown(f"<div class='day-header'>{day_data.get('day', f'Day {selected_day + 1}')}</div>", unsafe_allow_html=True)
-            st.markdown(f"<span class='focus-badge'>{day_data.get('focus', 'Workout')}</span>", unsafe_allow_html=True)
-        
-        with col2:
-            st.info(f"⏰ {day_data.get('time_of_day', 'Anytime')}")
-        
-        st.markdown("### Exercises")
-        
-        exercises = day_data.get('workout', [])
-        for exercise in exercises:
-            exercise_name = exercise.get('exercise', 'Exercise')
-            
-            if 'duration' in exercise:
-                detail = f"⏱️ {exercise['duration']}"
-            elif 'sets_reps' in exercise:
-                detail = f"🔢 {exercise['sets_reps']}"
-            else:
-                detail = ""
-            
-            st.markdown(f"""
-                <div class='exercise-item'>
-                    <strong>{exercise_name}</strong><br>
-                    <small>{detail}</small>
-                </div>
-            """, unsafe_allow_html=True)
+    if not workout_plan:
+        st.info("No workout plan available.")
     else:
-        st.warning("No workout data available for this day.")
+        # Day Selector
+        st.markdown('<div class="day-selector">', unsafe_allow_html=True)
+        selected_day = st.session_state.get('selected_workout_day', 0)
+        for i in range(7):
+            day_data = workout_plan[i] if i < len(workout_plan) else {}
+            day_name = day_data.get('day', f'Day {i+1}')
+            active = "active" if i == selected_day else ""
+            if st.button(day_name, key=f"wd{i}", help=f"Select {day_name}"):
+                st.session_state.selected_workout_day = i
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
+        # Selected Day Content
+        day = workout_plan[selected_day]
+        st.markdown(f'''
+            <div class="workout-container">
+                <div class="workout-focus">{day.get('focus', 'Full Body')}</div>
+                <div class="workout-time">Time: {day.get('time_of_day', 'Anytime')} • {len(day.get('workout', []))} exercises</div>
+        ''', unsafe_allow_html=True)
+
+        for ex in day.get('workout', []):
+            name = ex.get('exercise', 'Exercise')
+            detail = ex.get('duration') or ex.get('sets_reps', '')
+            st.markdown(f'''
+                <div class="exercise-item">
+                    <div class="exercise-name">{name}</div>
+                    <div class="exercise-detail">{detail}</div>
+                </div>
+            ''', unsafe_allow_html=True)
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ========================================
+# MEALS TAB
+# ========================================
 with tab2:
-    st.markdown("## 🍽️ Your Weekly Meal Plan")
-    
-    day_cols = st.columns(7)
-    selected_meal_day = st.session_state.get('selected_meal_day', 0)
-    
-    for idx, col in enumerate(day_cols):
-        with col:
-            if st.button(f"Day {idx + 1}", key=f"meal_day_{idx}", use_container_width=True):
-                st.session_state.selected_meal_day = idx
-                selected_meal_day = idx
-                st.rerun()
-    
-    st.markdown("---")
-    
-    if diet_plan_list and len(diet_plan_list) > selected_meal_day:
-        day_data = diet_plan_list[selected_meal_day]
-        
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            st.markdown(f"<div class='day-header'>{day_data.get('day', f'Day {selected_meal_day + 1}')}</div>", unsafe_allow_html=True)
-        
-        with col2:
-            calories = day_data.get('daily_calorie_target', 'Not specified')
-            st.markdown(f"<span class='calorie-badge'>🔥 {calories}</span>", unsafe_allow_html=True)
-        
-        st.markdown("### Meals")
-        
-        meals = day_data.get('meals', {})
-        
-        for meal_type, meal_desc in meals.items():
-            icon = "🌅" if meal_type == "Breakfast" else "☀️" if meal_type == "Lunch" else "🍪" if meal_type == "Snack" else "🌙"
-            
-            st.markdown(f"""
-                <div class='meal-item'>
-                    <strong>{icon} {meal_type}</strong><br>
-                    <p style='margin-top: 0.5rem; color: #555;'>{meal_desc}</p>
-                </div>
-            """, unsafe_allow_html=True)
+    if not diet_plan:
+        st.info("No meal plan available.")
     else:
-        st.warning("No meal data available for this day.")
+        # Day Selector
+        st.markdown('<div class="day-selector">', unsafe_allow_html=True)
+        selected_day = st.session_state.get('selected_meal_day', 0)
+        for i in range(7):
+            day_data = diet_plan[i] if i < len(diet_plan) else {}
+            day_name = day_data.get('day', f'Day {i+1}')
+            active = "active" if i == selected_day else ""
+            if st.button(day_name, key=f"md{i}", help=f"Select {day_name}"):
+                st.session_state.selected_meal_day = i
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown("---")
-col1, col2, col3 = st.columns([1, 1, 1])
+        # Selected Day Content
+        day = diet_plan[selected_day]
+        calories = day.get('daily_calorie_target', 'N/A')
+        st.markdown(f'''
+            <div class="meal-container">
+                <div class="meal-calories">Calories: {calories}</div>
+        ''', unsafe_allow_html=True)
 
+        meals = day.get('meals', {})
+        icons = {"Breakfast": "Sunrise", "Lunch": "Sun", "Snack": "Cookie", "Dinner": "Moon"}
+        for meal_type, desc in meals.items():
+            icon = icons.get(meal_type, "Plate")
+            st.markdown(f'''
+                <div class="meal-item">
+                    <div class="meal-title">{icon} {meal_type}</div>
+                    <div class="meal-desc">{desc}</div>
+                </div>
+            ''', unsafe_allow_html=True)
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ========================================
+# NAVIGATION
+# ========================================
+st.markdown('<div class="nav-buttons">', unsafe_allow_html=True)
+col1, col2, col3 = st.columns([1,1,1])
 with col1:
-    if st.button("← Back to Profile", use_container_width=True):
+    if st.button("Back to Profile", use_container_width=True):
         st.switch_page("pages/1_Onboarding.py")
-
 with col3:
-    if st.button("Go to Dashboard →", use_container_width=True):
+    if st.button("Go to Dashboard", use_container_width=True):
         st.switch_page("pages/3_Dashboard.py")
-
-st.markdown("---")
-st.markdown("### 💡 Quick Tips for Success")
-
-tip_cols = st.columns(3)
-
-with tip_cols[0]:
-    st.info("""
-    **Stay Hydrated**  
-    Drink 8-10 glasses of water daily
-    """)
-
-with tip_cols[1]:
-    st.success("""
-    **Be Consistent**  
-    Follow the plan for at least 4 weeks
-    """)
-
-with tip_cols[2]:
-    st.warning("""
-    **Rest Well**  
-    Get 7-8 hours of sleep each night
-    """)
+st.markdown('</div>', unsafe_allow_html=True)

@@ -1,222 +1,310 @@
 import streamlit as st
 from datetime import datetime, timedelta
-import json
 
-st.set_page_config(page_title="Your Dashboard", page_icon="📊", layout="wide")
+# ========================================
+# PAGE CONFIG
+# ========================================
+st.set_page_config(
+    page_title="AI Dashboard - LifeTune",
+    page_icon="AI",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
+# ========================================
+# PREMIUM CSS — Matches Onboarding & Plan
+# ========================================
 st.markdown("""
-    <style>
-    .dashboard-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        border-radius: 15px;
-        color: white;
-        margin-bottom: 2rem;
+<style>
+    .main {
+        padding: 0 !important;
+        background: linear-gradient(135deg, #0a0e27 0%, #1a1d35 100%);
+    }
+    .block-container {
+        padding: 2rem 4rem !important;
+        max-width: 1400px !important;
+    }
+    #MainMenu, footer, header {visibility: hidden;}
+
+    /* Header */
+   ”) .dashboard-header {
+        text-align: center; margin: 2rem 0 3rem 0;
+    }
+    .dashboard-title {
+        font-size: 3.8rem; font-weight: 900;
+        background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 2px;
+    }
+    .dashboard-subtitle {
+        font-size: 1.4rem; color: #9ca3c0; font-weight: 300;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem; margin: 3rem 0;
     }
     .stat-card {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 15px;
-        border: 2px solid #e0e0e0;
-        text-align: center;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        background: linear-gradient(135deg, #1a1d35 0%, #252945 100%);
+        border-radius: 25px; padding: 2.5rem; text-align: center;
+        border: 2px solid rgba(255,255,255,0.05); transition: all 0.4s;
+        position: relative; overflow: hidden;
     }
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #667eea;
+    .stat-card::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+        background: linear-gradient(90deg, #00ff87 0%, #60efff 100%); transform: scaleX(0);
+        transition: transform 0.3s;
     }
-    .stat-label {
-        color: #666;
-        font-size: 1rem;
-        margin-top: 0.5rem;
+    .stat-card:hover {
+        transform: translateY(-12px); border-color: rgba(0,255,135,0.5);
+        box-shadow: 0 25px 70px rgba(0,255,135,0.25);
     }
-    .today-card {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        padding: 2rem;
-        border-radius: 15px;
-        border: 2px solid #667eea;
+    .stat-card:hover::before {transform: scaleX(1);}
+    .stat-value {
+        font-size: 3.5rem; font-weight: 900;
+        background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         margin: 1rem 0;
     }
-    .checkbox-item {
-        background: white;
-        padding: 1rem;
-        border-radius: 10px;
-        margin: 0.5rem 0;
-        border-left: 4px solid #667eea;
+    .stat-label {
+        font-size: 1.1rem; color: #9ca3c0; text-transform: uppercase; letter-spacing: 1px;
     }
-    </style>
+
+    /* Today's Plan */
+    .today-container {
+        background: linear-gradient(135deg, rgba(0,255,135,0.1), rgba(96,239,255,0.1));
+        border-radius: 25px; padding: 3rem; border: 2px solid #00ff87;
+        margin: 3rem 0; box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    }
+    .today-title {
+        font-size: 2rem; font-weight: 800; color: white; margin-bottom: 1.5rem;
+        display: flex; align-items: center; gap: 0.8rem;
+    }
+    .today-focus {
+        display: inline-block; padding: 0.5rem 1.5rem; background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+        color: #0a0e27; border-radius: 30px; font-weight: 700; font-size: 0.95rem;
+        text-transform: uppercase; letter-spacing: 1px;
+    }
+    .today-time {
+        color: #00ff87; font-size: 1.1rem; font-weight: 600; margin: 1rem 0;
+    }
+
+    /* Exercise / Meal Items */
+    .item-card {
+        background: rgba(255,255,255,0.03); border-left: 5px solid #00ff87;
+        padding: 1.5rem; border-radius: 12px; margin: 1rem 0;
+        transition: all 0.3s;
+    }
+    .item-card:hover {
+        background: rgba(0,255,135,0.08); transform: translateX(8px);
+    }
+    .item-name {
+        font-size: 1.3rem; font-weight: 700; color: white;
+    }
+    .item-detail {
+        color: #00ff87; font-size: 1rem; font-weight: 600;
+    }
+    .meal-card {border-left-color: #60efff;}
+    .meal-card .item-detail {color: #60efff;}
+
+    /* Checkboxes */
+    .stCheckbox > label > div {
+        background: #1a1d35 !important; border: 2px solid #333 !important;
+        border-radius: 12px !important; padding: 1rem !important;
+    }
+    .stCheckbox > label > div[data-checked="true"] {
+        background: linear-gradient(135deg, #00ff87 0%, #60efff 100%) !important;
+        border-color: transparent !important;
+    }
+
+    /* Progress Table */
+    .progress-table {
+        background: #1a1d35; border-radius: 20px; overflow: hidden;
+        border: 2px solid rgba(255,255,255,0.1); margin: 3rem 0;
+    }
+    .progress-table th {
+        background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+        color: #0a0e27; padding: 1.2rem; font-weight: 700; text-transform: uppercase;
+    }
+    .progress-table td {
+        padding: 1rem; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .check {color: #00ff87; font-weight: 900;}
+    .cross {color: #ff4444; font-weight: 900;}
+
+    /* Save Button */
+    .save-btn {
+        text-align: center; margin: 2rem 0;
+    }
+
+    /* Navigation */
+    .nav-buttons {
+        display: flex; justify-content: space-between; margin: 3rem 0;
+    }
+    .stButton>button {
+        background: linear-gradient(135deg, #00ff87 0%, #60efff 100%) !important;
+        color: #0a0e27 !important; border: none !important; padding: 1.2rem 3rem !important;
+        font-size: 1.1rem !important; font-weight: 700 !important; border-radius: 50px !important;
+        text-transform: uppercase !important; letter-spacing: 2px !important;
+        box-shadow: 0 10px 30px rgba(0,255,135,0.3) !important; transition: all 0.3s !important;
+        width: auto !important; min-width: 200px;
+    }
+    .stButton>button:hover {
+        transform: translateY(-3px) !important; box-shadow: 0 15px 40px rgba(0,255,135,0.5) !important;
+    }
+    .back-btn button {
+        background: transparent !important; border: 2px solid rgba(255,255,255,0.2) !important;
+        color: white !important; box-shadow: none !important;
+    }
+    .back-btn button:hover {
+        border-color: #00ff87 !important; background: rgba(0,255,135,0.1) !important;
+    }
+
+    @media (max-width: 768px) {
+        .block-container {padding: 1rem !important;}
+        .dashboard-title {font-size: 2.5rem;}
+        .stats-grid {grid-template-columns: 1fr;}
+    }
+</style>
 """, unsafe_allow_html=True)
 
-if 'progress_data' not in st.session_state:
-    st.session_state.progress_data = {}
-
-if 'start_date' not in st.session_state:
-    st.session_state.start_date = datetime.now().strftime("%Y-%m-%d")
-
-if 'plan_data' not in st.session_state or st.session_state.plan_data is None:
-    st.warning("⚠️ No plan found. Please generate your plan first.")
-    if st.button("← Go to Onboarding"):
+# ========================================
+# DATA & VALIDATION
+# ========================================
+if 'plan_data' not in st.session_state or not st.session_state.plan_data:
+    st.warning("No plan found. Please generate your plan first.")
+    if st.button("Go to Onboarding"):
         st.switch_page("pages/1_Onboarding.py")
     st.stop()
 
-try:
-    plan_data = st.session_state.plan_data
-    workout_plan = plan_data.get('workout_plan', [])
-    diet_plan_list = plan_data.get('diet_plan', [])
-    
-except Exception as e:
-    st.error(f"Error loading plan data: {e}")
-    st.stop()
+if 'progress_data' not in st.session_state:
+    st.session_state.progress_data = {}
+if 'start_date' not in st.session_state:
+    st.session_state.start_date = datetime.now().strftime("%Y-%m-%d")
 
+plan = st.session_state.plan_data
+workout_plan = plan.get('workout_plan', [])
+diet_plan = plan.get('diet_plan', [])
 start_date = datetime.strptime(st.session_state.start_date, "%Y-%m-%d")
-today = datetime.now()
-days_elapsed = (today - start_date).days
-current_day = min(days_elapsed, 6)  
-
-st.markdown(f"""
-    <div class="dashboard-header">
-        <h1>📊 Your Fitness Dashboard</h1>
-        <p>Track your daily progress and stay motivated!</p>
-    </div>
-""", unsafe_allow_html=True)
-
-col1, col2, col3, col4 = st.columns(4)
-
+current_day = min((datetime.now() - start_date).days, 6)
 today_key = datetime.now().strftime("%Y-%m-%d")
-workout_done = st.session_state.progress_data.get(today_key, {}).get('workout', False)
-diet_done = st.session_state.progress_data.get(today_key, {}).get('diet', False)
 
-total_days = len([d for d in st.session_state.progress_data.values() if d.get('workout') or d.get('diet')])
-workout_streak = sum(1 for d in st.session_state.progress_data.values() if d.get('workout'))
-diet_streak = sum(1 for d in st.session_state.progress_data.values() if d.get('diet'))
+# ========================================
+# HEADER
+# ========================================
+st.markdown('''
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">AI Fitness Dashboard</h1>
+        <p class="dashboard-subtitle">Track your progress. Crush your goals. Transform your life.</p>
+    </div>
+''', unsafe_allow_html=True)
 
-completion_rate = ((workout_streak + diet_streak) / (total_days * 2) * 100) if total_days > 0 else 0
+# ========================================
+# STATS
+# ========================================
+progress = st.session_state.progress_data
+total_done = sum(1 for v in progress.values() if v.get('workout') or v.get('diet'))
+w_streak = sum(1 for v in progress.values() if v.get('workout'))
+d_streak = sum(1 for v in progress.values() if v.get('diet'))
+completion = (w_streak + d_streak) / (total_done * 2) * 100 if total_done else 0
 
-with col1:
-    st.markdown(f"""
+st.markdown('<div class="stats-grid">', unsafe_allow_html=True)
+stats = [
+    (current_day + 1, "Current Day"),
+    (w_streak, "Workouts Done"),
+    (d_streak, "Diet Days"),
+    (f"{completion:.0f}%", "Completion Rate")
+]
+for value, label in stats:
+    st.markdown(f'''
         <div class="stat-card">
-            <div class="stat-number">{current_day + 1}</div>
-            <div class="stat-label">Current Day</div>
+            <div class="stat-value">{value}</div>
+            <div class="stat-label">{label}</div>
         </div>
-    """, unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
-with col2:
-    st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-number">{workout_streak}</div>
-            <div class="stat-label">Workouts Done</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-    st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-number">{diet_streak}</div>
-            <div class="stat-label">Diet Days</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-with col4:
-    st.markdown(f"""
-        <div class="stat-card">
-            <div class="stat-number">{completion_rate:.0f}%</div>
-            <div class="stat-label">Completion</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("---")
-
-st.markdown("## 📅 Today's Plan")
+# ========================================
+# TODAY'S PLAN
+# ========================================
+st.markdown('''
+    <div class="today-container">
+        <div class="today-title">Today's Mission</div>
+''', unsafe_allow_html=True)
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("### 🏋️ Workout")
-    
-    if workout_plan and len(workout_plan) > current_day:
-        today_workout = workout_plan[current_day]
-        
-        st.markdown(f"**Focus:** {today_workout.get('focus', 'Workout')}")
-        st.markdown(f"**Time:** {today_workout.get('time_of_day', 'Anytime')}")
-        
+    st.markdown("### Workout")
+    if workout_plan and current_day < len(workout_plan):
+        day = workout_plan[current_day]
+        st.markdown(f'<div class="today-focus">{day.get("focus", "Full Body")}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="today-time">Time: {day.get("time_of_day", "Anytime")}</div>', unsafe_allow_html=True)
         with st.expander("View Exercises"):
-            for exercise in today_workout.get('workout', []):
-                ex_name = exercise.get('exercise', '')
-                detail = exercise.get('duration', exercise.get('sets_reps', ''))
-                st.markdown(f"- **{ex_name}** - {detail}")
-        
-        workout_done = st.checkbox("✅ Completed today's workout", 
-                                   value=st.session_state.progress_data.get(today_key, {}).get('workout', False),
-                                   key="workout_check")
-    else:
-        st.info("Rest day or no workout available")
-        workout_done = False
+            for ex in day.get('workout', []):
+                name = ex.get('exercise', '')
+                detail = ex.get('duration') or ex.get('sets_reps', '')
+                st.markdown(f'<div class="item-card"><div class="item-name">{name}</div><div class="item-detail">{detail}</div></div>', unsafe_allow_html=True)
+    workout_done = st.checkbox("Completed Workout", key="w_check")
 
 with col2:
-    st.markdown("### 🍽️ Meals")
-    
-    if diet_plan_list and len(diet_plan_list) > current_day:
-        today_diet = diet_plan_list[current_day]
-        
-        st.markdown(f"**Target:** {today_diet.get('daily_calorie_target', 'N/A')}")
-        
+    st.markdown("### Meals")
+    if diet_plan and current_day < len(diet_plan):
+        day = diet_plan[current_day]
+        st.markdown(f'<div class="today-focus">Fire {day.get("daily_calorie_target", "N/A")}</div>', unsafe_allow_html=True)
         with st.expander("View Meals"):
-            meals = today_diet.get('meals', {})
-            for meal_type, meal_desc in meals.items():
-                st.markdown(f"**{meal_type}:**")
-                st.markdown(f"_{meal_desc}_")
-                st.markdown("")
-        
-        diet_done = st.checkbox("✅ Followed today's diet plan", 
-                               value=st.session_state.progress_data.get(today_key, {}).get('diet', False),
-                               key="diet_check")
-    else:
-        st.info("No meal plan available")
-        diet_done = False
+            for meal, desc in day.get('meals', {}).items():
+                icon = {"Breakfast": "Sunrise", "Lunch": "Sun", "Snack": "Cookie", "Dinner": "Moon"}.get(meal, "Plate")
+                st.markdown(f'<div class="item-card meal-card"><div class="item-name">{icon} {meal}</div><div class="item-detail">{desc}</div></div>', unsafe_allow_html=True)
+    diet_done = st.checkbox("Followed Diet", key="d_check")
 
-if st.button("💾 Save Today's Progress", use_container_width=True):
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ========================================
+# SAVE PROGRESS
+# ========================================
+st.markdown('<div class="save-btn">', unsafe_allow_html=True)
+if st.button("SAVE TODAY'S PROGRESS", use_container_width=True):
     st.session_state.progress_data[today_key] = {
         'workout': workout_done,
         'diet': diet_done,
         'day': current_day + 1
     }
-    st.success("✅ Progress saved!")
+    st.success("Progress saved!")
     st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown("---")
+# ========================================
+# WEEKLY PROGRESS
+# ========================================
+st.markdown('''
+    <div style="text-align: center; margin: 2rem 0;">
+        <h2 style="color: white; font-weight: 800;">Weekly Overview</h2>
+    </div>
+    <div class="progress-table">
+''', unsafe_allow_html=True)
 
-if workout_done and diet_done:
-    st.success("🎉 Amazing! You crushed both workout and diet today! Keep it up!")
-elif workout_done or diet_done:
-    st.info("👍 Good job! You're making progress. Try to complete both tomorrow!")
-else:
-    st.warning("💪 Don't give up! Every journey starts with a single step. You've got this!")
-
-st.markdown("## 📈 Weekly Progress")
-
-progress_data = []
+table_html = '<table class="progress-table"><tr><th>Day</th><th>Workout</th><th>Diet</th></tr>'
 for i in range(7):
-    day_date = (start_date + timedelta(days=i)).strftime("%Y-%m-%d")
-    day_progress = st.session_state.progress_data.get(day_date, {})
-    progress_data.append({
-        'Day': f"Day {i+1}",
-        'Workout': '✅' if day_progress.get('workout') else '⬜',
-        'Diet': '✅' if day_progress.get('diet') else '⬜'
-    })
+    date = (start_date + timedelta(days=i)).strftime("%Y-%m-%d")
+    p = progress.get(date, {})
+    w = "Check" if p.get('workout') else "Cross"
+    d = "Check" if p.get('diet') else "Cross"
+    table_html += f'<tr><td>Day {i+1}</td><td class="{w.lower()}">{w}</td><td class="{d.lower()}">{d}</td></tr>'
+table_html += '</table>'
+st.markdown(table_html, unsafe_allow_html=True)
 
-st.table(progress_data)
-
-st.markdown("---")
+# ========================================
+# NAVIGATION
+# ========================================
+st.markdown('<div class="nav-buttons">', unsafe_allow_html=True)
 col1, col2 = st.columns(2)
-
 with col1:
-    if st.button("← View Plan", use_container_width=True):
+    if st.button("View Plan", use_container_width=True):
         st.switch_page("pages/2_YourPlan.py")
-
 with col2:
-    if st.button("🔄 Start New Plan", use_container_width=True):
-        st.session_state.plan_data = None
-        st.session_state.progress_data = {}
-        st.session_state.current_step = 1
+    if st.button("Start New Plan", use_container_width=True):
+        st.session_state.clear()
         st.switch_page("pages/1_Onboarding.py")
+st.markdown('</div>', unsafe_allow_html=True)
