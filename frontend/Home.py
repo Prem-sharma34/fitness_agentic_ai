@@ -6,13 +6,13 @@ from streamlit.components.v1 import html
 # ========================================
 st.set_page_config(
     page_title="LifeTune - AI Fitness & Nutrition",
-    page_icon="AI",
+    page_icon="🏋️",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # ========================================
-# CSS
+# CSS - Square Edges Only
 # ========================================
 st.markdown("""
 <style>
@@ -26,7 +26,7 @@ st.markdown("""
     }
     #MainMenu, footer, header {visibility: hidden;}
 
-    /* Fixed Menu Button */
+    /* Fixed Menu Button - Square */
     #menu-toggle {
         position: fixed;
         top: 20px;
@@ -36,7 +36,6 @@ st.markdown("""
         color: #0a0e27;
         border: none;
         padding: 12px 16px;
-        border-radius: 12px;
         font-size: 1.4rem;
         font-weight: 700;
         cursor: pointer;
@@ -51,7 +50,7 @@ st.markdown("""
         box-shadow: 0 8px 30px rgba(0,255,135,.6);
     }
 
-    /* Sidebar */
+    /* Sidebar - Square */
     section[data-testid="stSidebar"] {
         background: linear-gradient(135deg, #0a0e27 0%, #1a1d35 100%) !important;
         border-right: 2px solid rgba(0,255,135,0.2);
@@ -79,7 +78,6 @@ st.markdown("""
         background: transparent !important;
         color: #b0b8d4 !important;
         border: 2px solid rgba(255,255,255,0.1) !important;
-        border-radius: 15px !important;
         padding: 1rem 1.5rem !important;
         margin: 0.8rem 0 !important;
         font-weight: 600 !important;
@@ -100,15 +98,6 @@ st.markdown("""
         box-shadow: 0 8px 25px rgba(0,255,135,0.2) !important;
     }
 
-    .sidebar .stButton > button:active,
-    .sidebar .stButton > button[aria-current="true"] {
-        background: linear-gradient(135deg, #00ff87 0%, #60efff 100%) !important;
-        color: #0a0e27 !important;
-        font-weight: 700 !important;
-        border-color: transparent !important;
-        box-shadow: 0 0 30px rgba(0,255,135,0.4) !important;
-    }
-
     /* Hero */
     .hero-section{
         position:relative;height:100vh;
@@ -125,7 +114,7 @@ st.markdown("""
     }
     .hero-subtitle{font-size:1.5rem;color:#b0b8d4;margin-bottom:1.5rem;}
 
-    /* CTA Buttons */
+    /* CTA Buttons - Square */
     .post-hero-cta, .pre-footer-cta {padding: 3rem 1rem;text-align: center;}
     .pre-footer-cta {background: linear-gradient(135deg, #1a1d35 0%, #0a0e27 100%);}
     .html-btn {
@@ -135,7 +124,6 @@ st.markdown("""
         padding: 0.9rem 3rem;
         font-size: 1.2rem;
         font-weight: 700;
-        border-radius: 50px;
         text-transform: uppercase;
         box-shadow: 0 10px 40px rgba(0,255,135,.3);
         transition: all .3s;
@@ -150,19 +138,20 @@ st.markdown("""
         box-shadow: 0 15px 50px rgba(0,255,135,.5);
     }
 
-    /* Other sections... */
+    /* Stats */
     .stats-section{padding:5rem 4rem;background:linear-gradient(135deg,#00ff87 0%,#60efff 100%);text-align:center;}
     .stats-grid{display:grid !important;grid-template-columns:repeat(auto-fit,minmax(200px,1fr)) !important;gap:3rem;}
     .stat-number{font-size:4rem;font-weight:900;color:#0a0e27;}
     .stat-label{font-size:1.2rem;color:#0a0e27;font-weight:600;text-transform:uppercase;}
 
+    /* Features - Square */
     .features-section{padding:6rem 4rem;background:#0a0e27;}
     .section-title{text-align:center;font-size:3rem;font-weight:800;color:white;margin-bottom:1rem;text-transform:uppercase;}
     .section-subtitle{text-align:center;font-size:1.2rem;color:#7a8199;margin-bottom:4rem;}
     .feature-grid{display:grid !important;grid-template-columns:repeat(auto-fit,minmax(300px,1fr)) !important;gap:2rem !important;}
     .feature-card{
         background:linear-gradient(135deg,#1a1d35 0%,#252945 100%);
-        border-radius:20px;padding:3rem 2rem;text-align:center;
+        padding:3rem 2rem;text-align:center;
         transition:all .4s;border:1px solid rgba(255,255,255,.05);
     }
     .feature-card:hover{transform:translateY(-15px);box-shadow:0 20px 60px rgba(0,255,135,.2);}
@@ -170,16 +159,17 @@ st.markdown("""
     .feature-title{font-size:1.6rem;font-weight:700;color:white;margin-bottom:1rem;}
     .feature-desc{font-size:1rem;color:#9ca3c0;}
 
+    /* Process - Square */
     .process-section{padding:6rem 4rem;background:#0a0e27;}
     .process-steps{display:grid !important;grid-template-columns:repeat(auto-fit,minmax(250px,1fr)) !important;gap:2rem !important;}
     .process-step{
         background:linear-gradient(135deg,#1a1d35 0%,#252945 100%);
-        border-radius:15px;padding:2rem;border:2px solid transparent;transition:all .3s;
+        padding:2rem;border:2px solid transparent;transition:all .3s;
     }
     .process-step:hover{border-color:#00ff87;transform:scale(1.05);}
     .step-number{
         width:60px;height:60px;background:linear-gradient(135deg,#00ff87 0%,#60efff 100%);
-        border-radius:50%;display:flex;align-items:center;justify-content:center;
+        display:flex;align-items:center;justify-content:center;
         font-size:2rem;font-weight:900;color:#0a0e27;margin-bottom:1.5rem;
     }
 
@@ -244,10 +234,10 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     nav_items = [
-        ("Home", "Home.py", "Home"),
-        ("Onboarding", "pages/1_Onboarding.py", "Robot"),
-        ("Your Plan", "pages/2_YourPlan.py", "Calendar"),
-        ("Dashboard", "pages/3_Dashboard.py", "Chart")
+        ("Home", "Home.py", "🏠"),
+        ("Onboarding", "pages/1_Onboarding.py", "🤖"),
+        ("Your Plan", "pages/2_YourPlan.py", "📋"),
+        ("Dashboard", "pages/3_Dashboard.py", "📊")
     ]
 
     for label, path, icon in nav_items:
@@ -259,7 +249,7 @@ with st.sidebar:
 # ========================================
 page_html = """
 <!-- Fixed Menu Button -->
-<button id="menu-toggle">Menu</button>
+<button id="menu-toggle">☰ Menu</button>
 
 <!-- Hero -->
 <div class="hero-section">
@@ -290,11 +280,11 @@ page_html = """
     <h2 class="section-title">Powered by AI Agents</h2>
     <p class="section-subtitle">Revolutionary technology meets personalized fitness</p>
     <div class="feature-grid">
-        <div class="feature-card"><div class="feature-icon">Robot</div><h3 class="feature-title">Smart Workouts</h3>
+        <div class="feature-card"><div class="feature-icon">🤖</div><h3 class="feature-title">Smart Workouts</h3>
             <p class="feature-desc">AI-crafted routines that adapt to your goals, schedule, and fitness level using advanced CrewAI agents</p></div>
-        <div class="feature-card"><div class="feature-icon">Plate</div><h3 class="feature-title">Indian Nutrition</h3>
+        <div class="feature-card"><div class="feature-icon">🍽️</div><h3 class="feature-title">Indian Nutrition</h3>
             <p class="feature-desc">Authentic Indian meal plans designed by nutrition specialists, perfectly balanced for your body type</p></div>
-        <div class="feature-card"><div class="feature-icon">Chart</div><h3 class="feature-title">Progress Tracking</h3>
+        <div class="feature-card"><div class="feature-icon">📊</div><h3 class="feature-title">Progress Tracking</h3>
             <p class="feature-desc">Real-time analytics and insights to keep you motivated and on track to achieve your fitness goals</p></div>
     </div>
 </div>
@@ -325,7 +315,7 @@ page_html = """
 <div class="footer">
     <div class="footer-content">
         <p>Powered by <a href="#" class="footer-link">CrewAI</a> & <a href="#" class="footer-link">Google Gemini</a></p>
-        <p style="margin-top:1rem;">© 2024 LifeTune. Built with Heart for your fitness goals.</p>
+        <p style="margin-top:1rem;">© 2024 LifeTune. Built with ❤️ for your fitness goals.</p>
     </div>
 </div>
 """

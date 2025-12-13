@@ -1,3 +1,4 @@
+# pages/1_Onboarding.py
 import streamlit as st
 import requests
 import time
@@ -206,7 +207,7 @@ st.markdown("""
         color: white !important; 
         font-size: 1rem !important; 
         font-weight: 600 !important; 
-        margin-bottom: 0.5rem !important;
+        margin-bottom: 0.5rem !important; 
         text-transform: uppercase;
         letter-spacing: 1px;
     }
@@ -354,24 +355,32 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ========================================
-# PROGRESS INDICATOR
+# PROGRESS INDICATOR - FIXED & SAFE
 # ========================================
 def show_progress(current):
     steps = ["Goal", "Info", "Time", "Diet", "Generate"]
     icons = ["🎯", "📊", "⏰", "🍽️", "✨"]
+    
     progress_html = '<div class="progress-container">'
     progress_html += '<div class="progress-line"></div>'
     progress_html += f'<div class="progress-line-active" style="width: {(current-1)*25}%;"></div>'
     progress_html += '<div class="step-indicator">'
+    
     for i in range(1, 6):
-        cls = "step-circle active" if i == current else ("step-circle completed" if i < current else "step-circle")
-        progress_html += f'''
-            <div class="{cls}">
-                <span>{icons[i-1]}</span>
-                <div class="step-label">{steps[i-1]}</div>
-            </div>
-        '''
+        if i == current:
+            cls = "step-circle active"
+        elif i < current:
+            cls = "step-circle completed"
+        else:
+            cls = "step-circle"
+            
+        progress_html += f'<div class="{cls}">'
+        progress_html += f'<span>{icons[i-1]}</span>'
+        progress_html += f'<div class="step-label">{steps[i-1]}</div>'
+        progress_html += '</div>'
+    
     progress_html += '</div></div>'
+    
     st.markdown(progress_html, unsafe_allow_html=True)
 
 show_progress(st.session_state.current_step)
